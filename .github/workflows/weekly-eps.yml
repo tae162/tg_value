@@ -39,11 +39,18 @@ jobs:
       - name: Verify Chrome
         run: google-chrome --version
 
-      # 서비스 계정 JSON 키를 secret에서 파일로 복원
+      # 서비스 계정 JSON 키를 secret에서 파일로 복원.
+      # secret에 선행 UTF-8 BOM이 섞일 수 있어 utf-8-sig 디코드로 제거(oauth2client가 BOM 거부).
       - name: Write Google service-account key
         env:
           GOOGLE_CLOUD_KEY_JSON: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
-        run: printf '%s' "$GOOGLE_CLOUD_KEY_JSON" > keyfile.json
+        run: |
+          python - <<'PY'
+          import os
+          raw = os.environ["GOOGLE_CLOUD_KEY_JSON"].encode("utf-8").decode("utf-8-sig")
+          with open("keyfile.json", "w", encoding="utf-8") as f:
+              f.write(raw)
+          PY
 
       - name: Run EPS update
         env:

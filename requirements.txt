@@ -1,4 +1,4 @@
-FinanceDataReader==0.9.93
+finance-datareader==0.9.93
 gspread==6.1.2
 oauth2client==4.1.3
 selenium==4.45.0

@@ -65,13 +65,12 @@ pip install -r requirements.txt
 `.github/workflows/weekly-eps.yml` — **매주 일요일 06:00 KST**(=토 21:00 UTC, cron `0 21 * * 6`)
 자동 실행. Actions 탭에서 수동 실행(`workflow_dispatch`)도 가능.
 
-실행 전 GitHub 리포 **Settings → Secrets and variables → Actions** 에 아래 3개 secret 등록 필요:
+실행 전 GitHub 리포 **Settings → Secrets and variables → Actions** 에 아래 2개 secret 등록 필요:
 
 | Secret 이름 | 값 |
 |------------|----|
 | `GOOGLE_CLOUD_KEY_JSON` | 서비스 계정 JSON 키 **파일 전체 내용** (`*.json`) |
 | `GOOGLE_DOC_SHEET_FILE_TGVAL_KEY` | Google Sheets 파일 ID |
-| `OPENDART_API_KEY` | OpenDART API 키 |
 
 > 워크플로가 `GOOGLE_CLOUD_KEY_JSON`을 `keyfile.json`으로 복원하고, 실행 후 삭제한다.
 > `.json` 키 파일과 `.env`는 `.gitignore`로 리포에 올라가지 않으므로 secret으로 주입한다.
@@ -158,5 +157,4 @@ pip install -r requirements.txt
 ```
 GOOGLE_CLOUD_KEY_PATH=<서비스계정 JSON 키 파일>
 GOOGLE_DOC_SHEET_FILE_TGVAL_KEY=<Google Sheets 파일 ID>
-OPENDART_API_KEY=<OpenDART API 키>
 ```

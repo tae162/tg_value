@@ -56,7 +56,6 @@ jobs:
         env:
           GOOGLE_CLOUD_KEY_PATH: keyfile.json
           GOOGLE_DOC_SHEET_FILE_TGVAL_KEY: ${{ secrets.GOOGLE_DOC_SHEET_FILE_TGVAL_KEY }}
-          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
         run: python tg_stock_watchlist_value.py
 
       - name: Cleanup key

@@ -1,11 +1,11 @@
 name: Weekly Watchlist EPS Update
 
-# 매주 일요일 06:00 KST 실행.
-#   GitHub Actions cron은 UTC 기준 -> 06:00 KST = 전날(토) 21:00 UTC.
-#   KST = UTC+9 이므로 day-of-week 6(토), 21시.
+# 매주 일요일 04:00 KST 실행.
+#   GitHub Actions cron은 UTC 기준 -> 04:00 KST = 전날(토) 19:00 UTC.
+#   KST = UTC+9 이므로 day-of-week 6(토), 19시.
 on:
   schedule:
-    - cron: "0 21 * * 6"
+    - cron: "0 19 * * 6"
   workflow_dispatch: {}        # 수동 실행 버튼
 
 permissions:

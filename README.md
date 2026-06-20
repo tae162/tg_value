@@ -62,7 +62,7 @@ pip install -r requirements.txt
 
 ### 자동 실행 (GitHub Actions)
 
-`.github/workflows/weekly-eps.yml` — **매주 일요일 06:00 KST**(=토 21:00 UTC, cron `0 21 * * 6`)
+`.github/workflows/weekly-eps.yml` — **매주 일요일 04:00 KST**(=토 19:00 UTC, cron `0 19 * * 6`)
 자동 실행. Actions 탭에서 수동 실행(`workflow_dispatch`)도 가능.
 
 실행 전 GitHub 리포 **Settings → Secrets and variables → Actions** 에 아래 2개 secret 등록 필요:

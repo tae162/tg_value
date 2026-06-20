@@ -1,0 +1,57 @@
+name: Weekly Watchlist EPS Update
+
+# 매주 일요일 06:00 KST 실행.
+#   GitHub Actions cron은 UTC 기준 -> 06:00 KST = 전날(토) 21:00 UTC.
+#   KST = UTC+9 이므로 day-of-week 6(토), 21시.
+on:
+  schedule:
+    - cron: "0 21 * * 6"
+  workflow_dispatch: {}        # 수동 실행 버튼
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-eps
+  cancel-in-progress: false
+
+jobs:
+  update-eps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ubuntu-latest 러너에는 google-chrome 기본 설치됨.
+      # selenium 4.45의 Selenium Manager가 chromedriver를 자동 매칭.
+      - name: Verify Chrome
+        run: google-chrome --version
+
+      # 서비스 계정 JSON 키를 secret에서 파일로 복원
+      - name: Write Google service-account key
+        env:
+          GOOGLE_CLOUD_KEY_JSON: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+        run: printf '%s' "$GOOGLE_CLOUD_KEY_JSON" > keyfile.json
+
+      - name: Run EPS update
+        env:
+          GOOGLE_CLOUD_KEY_PATH: keyfile.json
+          GOOGLE_DOC_SHEET_FILE_TGVAL_KEY: ${{ secrets.GOOGLE_DOC_SHEET_FILE_TGVAL_KEY }}
+          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
+        run: python tg_stock_watchlist_value.py
+
+      - name: Cleanup key
+        if: always()
+        run: rm -f keyfile.json

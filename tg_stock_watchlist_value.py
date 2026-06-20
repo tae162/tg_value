@@ -335,16 +335,25 @@ def update_watchlist_eps(only_name=None, headless=True):
         return
     logger.info("'%s' 헤더 행: %d, 데이터 시작 행: %d", STOCK_HEADER, header_idx + 1, header_idx + 2)
 
-    updates = []          # batch_update 요청 목록
+    updates = []          # batch_update 값 요청 목록
+    fmt_updates = []      # batch_format 서식 요청 목록
     driver = None         # 미장용 selenium 드라이버(재사용)
     us_pause = 3.0        # Finviz 요청 간 간격(초) — 봇 탐지/rate-limit 완화
     kr_cnt = us_cnt = skip_cnt = 0
 
-    def queue_cell(sheet_row, year, value):
+    # 숫자 서식: 미장(소수 EPS)은 소수 2자리, 국장(원 단위 정수)은 소수 없음. 둘 다 천단위 콤마.
+    def num_pattern(market):
+        return "#,##0.00" if market == "US" else "#,##0"
+
+    def queue_cell(sheet_row, year, value, pattern):
         if value is None:
             return
         a1 = gspread.utils.rowcol_to_a1(sheet_row, col_map[year])
         updates.append({"range": a1, "values": [[value]]})
+        fmt_updates.append({
+            "range": a1,
+            "format": {"numberFormat": {"type": "NUMBER", "pattern": pattern}},
+        })
 
     try:
         for i in range(header_idx + 1, len(rows)):
@@ -388,9 +397,10 @@ def update_watchlist_eps(only_name=None, headless=True):
                 skip_cnt += 1
             logger.info("[%d] %-12s (%s:%s)  Y=%s Y1=%s Y2=%s",
                         sheet_row, name, market, code, vy, vy1, vy2)
-            queue_cell(sheet_row, y, vy)
-            queue_cell(sheet_row, y1, vy1)
-            queue_cell(sheet_row, y2, vy2)
+            pat = num_pattern(market)
+            queue_cell(sheet_row, y, vy, pat)
+            queue_cell(sheet_row, y1, vy1, pat)
+            queue_cell(sheet_row, y2, vy2, pat)
     finally:
         kill_driver(driver)
 
@@ -399,8 +409,14 @@ def update_watchlist_eps(only_name=None, headless=True):
         logger.warning("갱신할 셀 없음")
         return
 
-    # 값만 RAW로 일괄 쓰기 -> 기존 셀 서식(콤마/소수) 유지
+    # 값 RAW로 일괄 쓰기
     ws.batch_update(updates, value_input_option="RAW")
+    # 숫자 서식 일괄 적용 (US=#,##0.00, KR=#,##0). 값과 별개 API라 따로 호출.
+    if fmt_updates:
+        try:
+            ws.batch_format(fmt_updates)
+        except Exception as e:
+            logger.warning("서식 적용 실패(%s) -> 값은 갱신됨", type(e).__name__)
     kst = pytz.timezone("Asia/Seoul")
     logger.info("%d개 셀 갱신 완료 (Updated on %s KST)",
                 len(updates), datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S"))
